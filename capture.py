@@ -12,9 +12,9 @@ class CameraStop:
         self.cam_object = cam_object
 
     def __call__(self, sig, frame):
-        self.cam_object.stop()
+        #self.cam_object.stop()
         global running
-        #running = False
+        running = False
 
 
 def frame_cb(phase, amplitude):
@@ -36,17 +36,22 @@ c = depth_eye.capture(selected, frame_cb, 100)
 # Register break handler
 signal.signal(signal.SIGINT, CameraStop(c))
 
+ampl_gain = 200.0
+phase_gain = 1000.0
+
 while running:
 
     if ff is not None:
         phase, ampl = ff #numpy.random.random((80, 60))
-        phase_img = cv2.merge([phase/1000.0, phase/1000.0, phase/1000.0])
+        phase_img = cv2.merge([phase/phase_gain, phase/phase_gain, phase/phase_gain])
         cv2.imshow("phase", phase_img)
 
-        ampl_img = cv2.merge([ampl/1000.0, ampl/1000.0, ampl/1000.0])
+
+        ampl_img = cv2.merge([ampl/ampl_gain, ampl/ampl_gain, ampl/ampl_gain])
         cv2.imshow("amplitude", ampl_img)
 
         ff = None
         cv2.waitKey(1)
 
-time.sleep(10)
+c.stop()
+sys.exit(0)

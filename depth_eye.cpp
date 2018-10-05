@@ -11,7 +11,7 @@ namespace bn = boost::python::numpy;
 
 using namespace Voxel;
 
-Voxel::CameraSystem sys;
+auto sys = std::make_unique<Voxel::CameraSystem>();
 
 class DepthCameraWrapper
 {
@@ -19,11 +19,10 @@ public:
   DepthCameraWrapper(Voxel::DepthCameraPtr& camera): m_camera(camera) {}
 
   void stop() {
-    std::cout << "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz\n";
-
-    sys.disconnect(m_camera, true);
-    m_camera->stop();
     m_camera->reset();
+    sys->disconnect(m_camera);
+    m_camera->stop();
+    sys.reset();
 
   }
 
@@ -39,7 +38,7 @@ auto scan()
 {
   bp::list deviceList;
 
-  const Vector<DevicePtr> &devices = sys.scan();
+  const Vector<DevicePtr> &devices = sys->scan();
   for (auto &d: devices) {
     auto ud = std::dynamic_pointer_cast<USBDevice>(d);
     if (d)
@@ -58,7 +57,7 @@ auto capture(bp::tuple device, bp::object callback, uint32_t frameRate)
 	auto voxel_device_ptr = DevicePtr(new USBDevice(vid, pid, serial, -1, "", ""));
 
   // Connect to the camera
-  auto camera = sys.connect(voxel_device_ptr);
+  auto camera = sys->connect(voxel_device_ptr);
 
   // Set the frame rate
   Voxel::FrameRate fr;
