@@ -2,8 +2,20 @@ import sys, time
 import numpy
 import depth_eye
 import cv2
+import signal
 
 ff = None
+running = True
+
+class CameraStop:
+    def __init__(self, cam_object):
+        self.cam_object = cam_object
+
+    def __call__(self, sig, frame):
+        self.cam_object.stop()
+        global running
+        #running = False
+
 
 def frame_cb(phase, amplitude):
     global ff
@@ -18,9 +30,13 @@ if (len(devices) == 0):
 
 selected = devices[0]
 
-c = depth_eye.capture(selected, frame_cb)
+# Start capture
+c = depth_eye.capture(selected, frame_cb, 100)
 
-while True:
+# Register break handler
+signal.signal(signal.SIGINT, CameraStop(c))
+
+while running:
 
     if ff is not None:
         phase, ampl = ff #numpy.random.random((80, 60))

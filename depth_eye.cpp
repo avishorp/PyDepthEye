@@ -19,8 +19,12 @@ public:
   DepthCameraWrapper(Voxel::DepthCameraPtr& camera): m_camera(camera) {}
 
   void stop() {
+    std::cout << "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz\n";
+
+    sys.disconnect(m_camera, true);
     m_camera->stop();
-    //m_camera->disconnect();
+    m_camera->reset();
+
   }
 
 protected:
@@ -45,7 +49,7 @@ auto scan()
   return deviceList;
 }
 
-auto capture(bp::tuple device, bp::object callback/*, unsigned int frameRate = 0*/)
+auto capture(bp::tuple device, bp::object callback, uint32_t frameRate)
 {
   // Create a device
   auto vid = bp::extract<uint16_t>(device[0])();
@@ -55,6 +59,17 @@ auto capture(bp::tuple device, bp::object callback/*, unsigned int frameRate = 0
 
   // Connect to the camera
   auto camera = sys.connect(voxel_device_ptr);
+
+  // Set the frame rate
+  Voxel::FrameRate fr;
+  fr.numerator = frameRate; //bp::extract<uint32_t>(frameRate[0])();
+  fr.denominator = 1; //bp::extract<uint32_t>(frameRate[1])();
+
+  camera->setFrameRate(fr);
+
+  camera->getFrameRate(fr);
+  //std::cout << "framerate nom " << fr.numerator << '\n';
+  //std::cout << "den " << fr.denominator << '\n'; 
 
   // Register a callback
   camera->registerCallback(DepthCamera::FRAME_RAW_FRAME_PROCESSED, [callback](DepthCamera &dc, const Frame &frame, DepthCamera::FrameType c) {
@@ -67,17 +82,6 @@ auto capture(bp::tuple device, bp::object callback/*, unsigned int frameRate = 0
 		  std::cout << "Null frame captured? or not of type ToFRawFrame" << std::endl;
 		  return;
 	  }
-
-/*
-    bn::ndarray phase = bn::from_data(
-      (short*)tof_frame->phase(), 
-      bn::dtype::get_builtin<short>(),
-      bp::make_tuple(60, 80),
-      bp::make_tuple(sizeof(short)),
-      bp::object());
-  */
-    //bn::ndarray result = bn::zeros(1, shape, );
-    //std::copy(v.begin(), v.end(), reinterpret_cast<double*>(result.get_data()));
 
 	  //short phaseFrame[60*80];
 	  //memcpy((char *)phaseFrame, (char *)d->phase(), sizeof(short) * d->size.width * d->size.height);
@@ -113,11 +117,6 @@ auto capture(bp::tuple device, bp::object callback/*, unsigned int frameRate = 0
 }
 
 
-auto test()
-{
-  auto phase = bn::zeros(bp::make_tuple(60, 80), bn::dtype::get_builtin<double>());
-  return phase;
-}
 
 BOOST_PYTHON_MODULE(depth_eye)
 {
@@ -131,7 +130,6 @@ BOOST_PYTHON_MODULE(depth_eye)
 
   bp::def("scan", scan);
   bp::def("capture", capture);
-  bp::def("test", test);
 
 }
 
