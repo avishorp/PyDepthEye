@@ -7,7 +7,6 @@ import cv2
 ff = None
 
 def frame_cb(phase):
-    print("F")
     global ff
     ff = phase
     #plt.imshow(numpy.random.random((80, 60)))
@@ -32,7 +31,7 @@ while True:
     if ff is not None:
         data = ff #numpy.random.random((80, 60))
         print data
-        img = cv2.merge([data/4000.0, data/4000.0, data/4000.0])
+        img = cv2.merge([data/1000.0, data/1000.0, data/1000.0])
         cv2.imshow("phase", img)
         ff = None
         cv2.waitKey(1)

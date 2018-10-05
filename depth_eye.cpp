@@ -91,8 +91,8 @@ auto capture(bp::tuple device, bp::object callback/*, unsigned int frameRate = 0
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
 {
-    auto phase = bn::zeros(bp::make_tuple(80, 60), bn::dtype::get_builtin<short>());
-    memcpy(phase.get_data(), tof_frame->phase(), 80*60*sizeof(short));
+    auto phase = bn::zeros(bp::make_tuple(60, 80), bn::dtype::get_builtin<short>());
+    memcpy(phase.get_data(), tof_frame->phase(), 60*80*sizeof(short));
     callback(phase);
 }
     PyGILState_Release(gstate);
